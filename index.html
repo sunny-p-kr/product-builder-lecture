@@ -658,6 +658,13 @@
     $("themeToggle").addEventListener("click", toggleTheme);
     initTheme();
 
+    const contactModal = $("contactModal");
+    $("openContact").addEventListener("click", () => contactModal.classList.add("active"));
+    $("closeContact").addEventListener("click", () => contactModal.classList.remove("active"));
+    contactModal.addEventListener("click", (e) => {
+      if (e.target === contactModal) contactModal.classList.remove("active");
+    });
+
     function emptyState() {
       return { brain: [], priorities: [null, null, null], spare: [], boxes: {} };
     }
@@ -1105,6 +1112,25 @@
     });
 
     $("spareList").addEventListener("dragover", allowDrop);
+    $("spareList").addEventListener("dragleave", leaveDrop);
+    $("spareList").addEventListener("drop", (event) => {
+      event.preventDefault();
+      $("spareList").classList.remove("over");
+      const data = readDrag(event);
+      if (!data || !data.text || data.kind === "box") return;
+      moveToSpare(data);
+    });
+
+    $("dateInput").addEventListener("change", (event) => load(event.target.value));
+    $("prevDay").addEventListener("click", () => load(addDays(currentDate, -1)));
+    $("nextDay").addEventListener("click", () => load(addDays(currentDate, 1)));
+
+    load(currentDate);
+    setInterval(renderNowLine, 60000);
+  </script>
+</body>
+</html>
+Listener("dragover", allowDrop);
     $("spareList").addEventListener("dragleave", leaveDrop);
     $("spareList").addEventListener("drop", (event) => {
       event.preventDefault();
