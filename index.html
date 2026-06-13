@@ -485,6 +485,23 @@
       white-space: nowrap;
     }
 
+    .contact-form {
+      display: grid;
+      gap: 8px;
+    }
+
+    .textarea {
+      min-height: 80px;
+      resize: none;
+      font-size: 13px;
+    }
+
+    .contact-panel {
+      margin-top: auto;
+      border-top: 1px solid rgba(255,255,255,.1);
+      padding-top: 15px;
+    }
+
     @media (max-width: 980px) {
       .app {
         height: auto;
@@ -582,6 +599,19 @@
             <button class="primary">추가</button>
           </form>
           <div class="list two-col" id="spareList" aria-label="남는시간 할 일 목록"></div>
+        </section>
+
+        <section class="panel contact-panel">
+          <div class="panel-head">
+            <h2>제휴 문의</h2>
+            <small>Formspree 연동</small>
+          </div>
+          <form action="https://formspree.io/f/YOUR_FORMSPREE_ID" method="POST" class="contact-form">
+            <input type="text" name="name" class="text-input" placeholder="성함/회사명" required>
+            <input type="email" name="_replyto" class="text-input" placeholder="이메일 주소" required>
+            <textarea name="message" class="text-input textarea" placeholder="문의 내용을 입력하세요" required></textarea>
+            <button type="submit" class="primary">문의 보내기</button>
+          </form>
         </section>
       </div>
     </aside>
