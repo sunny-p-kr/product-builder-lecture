@@ -1,14 +1,1095 @@
 <!doctype html>
-<html lang="en">
+<html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Hello World</title>
-  <link href='/style.css' rel='stylesheet'>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Timebox Planner V6</title>
+  <style>
+    :root {
+      --bg: #eef1f4;
+      --panel: #ffffff;
+      --ink: #14171c;
+      --muted: #69717d;
+      --line: #d5dbe3;
+      --soft: #f3f5f7;
+      --side: #16202a;
+      --accent: #0f766e;
+      --accent-2: #20c7ad;
+      --p1: #e24c4b;
+      --p2: #2f6fed;
+      --p3: #8b5cc7;
+      --spare: #d88924;
+      --shadow: 0 10px 28px rgba(15, 23, 42, .08);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", sans-serif;
+      color-scheme: light;
+    }
+
+    [data-theme="dark"] {
+      --bg: #0f172a;
+      --panel: #1e293b;
+      --ink: #f1f5f9;
+      --muted: #94a3b8;
+      --line: #334155;
+      --soft: #1e293b;
+      --side: #020617;
+      --accent: #14b8a6;
+      --accent-2: #2dd4bf;
+      --shadow: 0 10px 28px rgba(0, 0, 0, .4);
+      color-scheme: dark;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-width: 320px;
+      color: var(--ink);
+      background: var(--bg);
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    button, input {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .app {
+      height: 100vh;
+      display: grid;
+      grid-template-columns: minmax(360px, 1fr) minmax(0, 1fr);
+      overflow: hidden;
+    }
+
+    .side {
+      min-height: 0;
+      background: var(--side);
+      color: #f8fafc;
+      padding: 14px;
+      display: grid;
+      grid-template-rows: auto auto auto minmax(0, 1fr);
+      gap: 10px;
+      overflow: hidden;
+      transition: background-color 0.3s;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 19px;
+      line-height: 1.15;
+      letter-spacing: 0;
+    }
+
+    .brand small {
+      color: #b7c2ce;
+      white-space: nowrap;
+    }
+
+    .date-row {
+      display: grid;
+      grid-template-columns: 38px minmax(0, 1fr) 38px;
+      gap: 7px;
+      align-items: center;
+    }
+
+    .icon-btn, .ghost-btn, .primary {
+      min-height: 36px;
+      border-radius: 8px;
+      font-weight: 800;
+    }
+
+    .icon-btn, .ghost-btn {
+      background: rgba(255,255,255,.09);
+      color: #fff;
+    }
+
+    .icon-btn:hover, .ghost-btn:hover {
+      background: rgba(255,255,255,.15);
+    }
+
+    .date-input, .text-input {
+      width: 100%;
+      min-height: 36px;
+      border: 1px solid rgba(255,255,255,.15);
+      border-radius: 8px;
+      background: rgba(255,255,255,.1);
+      color: #fff;
+      padding: 8px 10px;
+      outline: none;
+    }
+
+    .date-input::-webkit-calendar-picker-indicator { filter: invert(1); }
+    .text-input::placeholder { color: #aeb8c4; }
+
+    .quick-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 7px;
+    }
+
+    .stat {
+      border: 1px solid rgba(255,255,255,.1);
+      background: rgba(255,255,255,.07);
+      border-radius: 8px;
+      padding: 9px;
+      min-width: 0;
+    }
+
+    .stat span {
+      display: block;
+      color: #b7c2ce;
+      font-size: 11px;
+      line-height: 1.2;
+      white-space: nowrap;
+    }
+
+    .stat strong {
+      display: block;
+      margin-top: 5px;
+      font-size: 20px;
+      line-height: 1;
+    }
+
+    .stack {
+      min-height: 0;
+      display: grid;
+      grid-template-rows: minmax(0, 1.2fr) auto minmax(0, .8fr);
+      gap: 10px;
+      overflow: hidden;
+    }
+
+    .panel {
+      min-height: 0;
+      border: 1px solid rgba(255,255,255,.11);
+      border-radius: 8px;
+      background: rgba(255,255,255,.07);
+      padding: 10px;
+      display: grid;
+      grid-template-rows: auto auto minmax(0, 1fr);
+      gap: 8px;
+      overflow: hidden;
+    }
+
+    .panel.compact {
+      grid-template-rows: auto minmax(0, 1fr);
+    }
+
+    .panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .panel-head h2 {
+      margin: 0;
+      font-size: 14px;
+      letter-spacing: 0;
+    }
+
+    .panel-head small {
+      color: #b7c2ce;
+      font-size: 11px;
+      white-space: nowrap;
+    }
+
+    .add-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 58px;
+      gap: 7px;
+    }
+
+    .primary {
+      background: var(--accent-2);
+      color: #06231f;
+    }
+
+    .list {
+      min-height: 0;
+      display: grid;
+      align-content: start;
+      gap: 6px;
+      overflow: auto;
+      padding-right: 2px;
+    }
+
+    .list.two-col {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .item, .priority, .box-task {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      color: var(--ink);
+      box-shadow: 0 3px 10px rgba(0,0,0,.06);
+      transition: background-color 0.3s, border-color 0.3s;
+    }
+
+    .item {
+      min-height: 44px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 28px;
+      gap: 6px;
+      align-items: center;
+      padding: 6px 6px 6px 9px;
+      user-select: none;
+    }
+
+    .item[draggable="true"], .priority[draggable="true"], .box-task[draggable="true"] { cursor: grab; }
+
+    .text {
+      min-width: 0;
+      overflow-wrap: anywhere;
+      font-size: 13px;
+      font-weight: 750;
+      line-height: 1.25;
+    }
+
+    .item .text {
+      white-space: normal;
+    }
+
+    .delete-btn {
+      width: 26px;
+      height: 26px;
+      border-radius: 7px;
+      background: var(--soft);
+      color: var(--muted);
+      font-weight: 900;
+      line-height: 1;
+      transition: background-color 0.3s;
+    }
+
+    .priority-grid {
+      display: grid;
+      gap: 7px;
+    }
+
+    .priority {
+      min-height: 44px;
+      display: grid;
+      grid-template-columns: 24px minmax(0, 1fr) 28px;
+      gap: 7px;
+      align-items: center;
+      padding: 7px;
+      border-left-width: 6px;
+    }
+
+    .priority.empty {
+      background: rgba(255,255,255,.08);
+      color: #cbd5df;
+      border: 1px dashed rgba(255,255,255,.3);
+      box-shadow: none;
+      grid-template-columns: 1fr;
+      text-align: center;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .priority[data-slot="0"] { border-left-color: var(--p1); }
+    .priority[data-slot="1"] { border-left-color: var(--p2); }
+    .priority[data-slot="2"] { border-left-color: var(--p3); }
+
+    .priority input {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--accent);
+    }
+
+    .priority.done .text {
+      color: var(--muted);
+      text-decoration: line-through;
+    }
+
+    .footer-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .main {
+      min-height: 0;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      overflow: hidden;
+    }
+
+    .topbar {
+      min-height: 58px;
+      border-bottom: 1px solid var(--line);
+      background: var(--panel);
+      padding: 10px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      transition: background-color 0.3s, border-color 0.3s;
+    }
+
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .theme-toggle {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      background: var(--soft);
+      color: var(--ink);
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 0.3s;
+    }
+
+    .topbar h2 {
+      margin: 0;
+      font-size: 18px;
+      letter-spacing: 0;
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: 12px;
+      text-align: right;
+      line-height: 1.35;
+    }
+
+    .schedule-wrap {
+      min-height: 0;
+      padding: 12px 18px 14px;
+      overflow: hidden;
+    }
+
+    .schedule {
+      position: relative;
+      height: 100%;
+      display: grid;
+      grid-template-rows: repeat(18, minmax(31px, 1fr));
+      gap: 5px;
+    }
+
+    .now-line {
+      position: absolute;
+      left: 80px;
+      right: 0;
+      height: 2px;
+      background: #e11d48;
+      box-shadow: 0 0 0 1px rgba(225, 29, 72, .18);
+      z-index: 4;
+      pointer-events: none;
+    }
+
+    .now-line::before {
+      content: "NOW";
+      position: absolute;
+      right: 0;
+      top: -20px;
+      width: 36px;
+      height: 18px;
+      border-radius: 6px;
+      background: #e11d48;
+      color: #fff;
+      font-size: 10px;
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .hour {
+      min-height: 0;
+      display: grid;
+      grid-template-columns: 72px minmax(0, 1fr);
+      gap: 8px;
+      align-items: stretch;
+    }
+
+    .hour-label {
+      border-radius: 8px;
+      background: var(--soft);
+      color: var(--ink);
+      font-size: 12px;
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    .dropzone {
+      min-width: 0;
+      border: 1px dashed var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      padding: 4px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      overflow: hidden;
+      transition: background-color 0.3s, border-color 0.3s;
+    }
+
+    .dropzone.over, .priority.over, .list.over {
+      outline: 2px solid var(--accent-2);
+      outline-offset: 1px;
+    }
+
+    .box-task {
+      min-width: 120px;
+      max-width: 260px;
+      height: 100%;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 24px;
+      align-items: center;
+      gap: 4px;
+      padding: 5px 5px 5px 8px;
+      border-left-width: 5px;
+      box-shadow: none;
+    }
+
+    .box-task .text {
+      font-size: 12px;
+      line-height: 1.2;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .box-task.p1 { border-left-color: var(--p1); }
+    .box-task.p2 { border-left-color: var(--p2); }
+    .box-task.p3 { border-left-color: var(--p3); }
+    .box-task.spare { border-left-color: var(--spare); }
+
+    .empty-note {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    @media (max-width: 980px) {
+      .app {
+        height: auto;
+        min-height: 100vh;
+        grid-template-columns: 1fr;
+        overflow: visible;
+      }
+
+      .side, .main {
+        min-height: auto;
+        overflow: visible;
+      }
+
+      .side {
+        grid-template-rows: auto;
+      }
+
+      .stack {
+        grid-template-rows: auto;
+        overflow: visible;
+      }
+
+      .panel, .list {
+        overflow: visible;
+      }
+
+      .schedule-wrap {
+        min-height: 720px;
+        overflow: visible;
+      }
+
+      .topbar {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .hint {
+        text-align: left;
+      }
+
+      .list.two-col {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
 </head>
 <body>
-  <h1>Hello, world!</h1>
-  <button onclick="console.log('hello');">Press me</button>
-  <script defer type="text/javascript" src="/main.js"></script>
+  <div class="app">
+    <aside class="side">
+      <div class="brand">
+        <h1>Timebox Planner</h1>
+        <small>1시간 단위</small>
+      </div>
+
+      <div class="date-row">
+        <button class="icon-btn" id="prevDay" title="전날">‹</button>
+        <input class="date-input" id="dateInput" type="date">
+        <button class="icon-btn" id="nextDay" title="다음날">›</button>
+      </div>
+
+      <div class="quick-stats">
+        <div class="stat"><span>브레인덤프</span><strong id="brainCount">0</strong></div>
+        <div class="stat"><span>중요완료</span><strong id="priorityDone">0/3</strong></div>
+        <div class="stat"><span>배치시간</span><strong id="plannedHours">0h</strong></div>
+      </div>
+
+      <div class="stack">
+        <section class="panel">
+          <div class="panel-head">
+            <h2>1. 브레인덤프</h2>
+            <small>옮겨도 원본 유지</small>
+          </div>
+          <form class="add-row" id="brainForm">
+            <input class="text-input" id="brainInput" placeholder="머릿속 할 일 입력">
+            <button class="primary">추가</button>
+          </form>
+          <div class="list two-col" id="brainList" aria-label="브레인덤프 목록"></div>
+        </section>
+
+        <section class="panel compact">
+          <div class="panel-head">
+            <h2>2. 중요한 3가지</h2>
+            <small>완료 안 하면 내일 이월</small>
+          </div>
+          <div class="priority-grid" id="priorityGrid"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h2>3. 남는시간에 할 일</h2>
+            <small>여유 시간용</small>
+          </div>
+          <form class="add-row" id="spareForm">
+            <input class="text-input" id="spareInput" placeholder="자투리 시간에 할 일">
+            <button class="primary">추가</button>
+          </form>
+          <div class="list two-col" id="spareList" aria-label="남는시간 할 일 목록"></div>
+        </section>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="theme-toggle" id="themeToggle" title="테마 변경">🌗</button>
+          <h2 id="dayTitle">오늘 일정</h2>
+        </div>
+        <div class="hint">브레인덤프 → 중요한 3가지 / 남는시간으로 이동<br>중요한 3가지 / 남는시간 → 시간표로 복사</div>
+      </header>
+      <section class="schedule-wrap">
+        <div class="schedule" id="schedule"></div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const STORAGE_PREFIX = "timebox:v6:";
+    const ROLLOVER_PREFIX = "timebox:v6:rolled:";
+    const THEME_KEY = "timebox:v6:theme";
+    const colors = ["p1", "p2", "p3"];
+    const hours = Array.from({ length: 18 }, (_, i) => (9 + i) % 24);
+    let currentDate = todayKey();
+    let state = emptyState();
+
+    const $ = (id) => document.getElementById(id);
+
+    function initTheme() {
+      const saved = localStorage.getItem(THEME_KEY);
+      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      const theme = saved || (prefersDark ? "dark" : "light");
+      document.documentElement.setAttribute("data-theme", theme);
+    }
+
+    function toggleTheme() {
+      const current = document.documentElement.getAttribute("data-theme");
+      const target = current === "dark" ? "light" : "dark";
+      document.documentElement.setAttribute("data-theme", target);
+      localStorage.setItem(THEME_KEY, target);
+    }
+
+    $("themeToggle").addEventListener("click", toggleTheme);
+    initTheme();
+
+    function emptyState() {
+      return { brain: [], priorities: [null, null, null], spare: [], boxes: {} };
+    }
+
+    function todayKey() {
+      const d = new Date();
+      if (d.getHours() < 3) d.setDate(d.getDate() - 1);
+      return dateKey(d);
+    }
+
+    function dateKey(date) {
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, "0");
+      const d = String(date.getDate()).padStart(2, "0");
+      return `${y}-${m}-${d}`;
+    }
+
+    function addDays(key, amount) {
+      const d = new Date(`${key}T12:00:00`);
+      d.setDate(d.getDate() + amount);
+      return dateKey(d);
+    }
+
+    function id() {
+      return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    }
+
+    function load(key) {
+      ensureRollover(key);
+      currentDate = key;
+      $("dateInput").value = key;
+      try {
+        state = JSON.parse(localStorage.getItem(STORAGE_PREFIX + key)) || emptyState();
+      } catch {
+        state = emptyState();
+      }
+      state.brain ||= [];
+      state.priorities ||= [null, null, null];
+      state.spare ||= [];
+      state.boxes ||= {};
+      render();
+    }
+
+    function save() {
+      localStorage.setItem(STORAGE_PREFIX + currentDate, JSON.stringify(state));
+    }
+
+    function ensureRollover(key) {
+      const marker = ROLLOVER_PREFIX + key;
+      if (localStorage.getItem(marker)) return;
+      if (!canRolloverInto(key)) return;
+
+      const previousKey = addDays(key, -1);
+      const previousRaw = localStorage.getItem(STORAGE_PREFIX + previousKey);
+      if (!previousRaw) {
+        localStorage.setItem(marker, "1");
+        return;
+      }
+
+      let previous;
+      let target;
+      try {
+        previous = JSON.parse(previousRaw) || emptyState();
+        target = JSON.parse(localStorage.getItem(STORAGE_PREFIX + key)) || emptyState();
+      } catch {
+        localStorage.setItem(marker, "1");
+        return;
+      }
+
+      const carryTexts = [];
+      (previous.brain || []).forEach((item) => carryTexts.push(item.text));
+      (previous.priorities || []).forEach((item) => {
+        if (item && !item.done) carryTexts.push(item.text);
+      });
+
+      target.brain ||= [];
+      const existing = new Set(target.brain.map((item) => item.text.trim()));
+      carryTexts
+        .map((text) => String(text || "").trim())
+        .filter(Boolean)
+        .forEach((text) => {
+          if (!existing.has(text)) {
+            target.brain.push({ id: id(), text });
+            existing.add(text);
+          }
+        });
+
+      localStorage.setItem(STORAGE_PREFIX + key, JSON.stringify(target));
+      localStorage.setItem(marker, "1");
+    }
+
+    function canRolloverInto(key) {
+      const cutoff = new Date(`${key}T03:00:00`);
+      return new Date() >= cutoff;
+    }
+
+    function addItem(listName, text) {
+      const clean = text.trim();
+      if (!clean) return;
+      state[listName].push({ id: id(), text: clean });
+      save();
+      render();
+    }
+
+    function removeSource(data, options = {}) {
+      if (!data) return;
+      if (data.kind === "brain" && data.id) {
+        state.brain = state.brain.filter((item) => item.id !== data.id);
+      }
+      if (data.kind === "spare" && data.id) {
+        state.spare = state.spare.filter((item) => item.id !== data.id);
+      }
+      if (data.kind === "priority" && data.slot !== undefined) {
+        const sourceSlot = Number(data.slot);
+        if (sourceSlot !== options.keepPrioritySlot) state.priorities[sourceSlot] = null;
+      }
+    }
+
+    function moveToBrain(data) {
+      if (!data || data.kind === "brain" || !data.text) return;
+      const clean = String(data.text || "").trim();
+      if (!clean) return;
+      const exists = state.brain.some((item) => item.text.trim() === clean);
+      if (!exists) state.brain.push({ id: id(), text: clean });
+      removeSource(data);
+      save();
+      render();
+    }
+
+    function moveToSpare(data) {
+      const text = data && data.text;
+      const clean = String(text || "").trim();
+      if (!clean) return;
+      if (data.kind === "spare") return;
+      const exists = state.spare.some((item) => item.text.trim() === clean);
+      if (exists) {
+        alert("이미 남는시간에 들어간 항목입니다.");
+        return;
+      }
+      state.spare.push({ id: id(), text: clean });
+      removeSource(data);
+      save();
+      render();
+    }
+
+    function confirmDelete(label) {
+      return window.confirm(`'${label}' 항목을 삭제할까요?`);
+    }
+
+    function removeFromList(listName, itemId) {
+      const item = state[listName].find((x) => x.id === itemId);
+      if (!item || !confirmDelete(item.text)) return;
+      state[listName] = state[listName].filter((x) => x.id !== itemId);
+      save();
+      render();
+    }
+
+    function setPriority(slot, text, sourceData) {
+      if (sourceData && sourceData.kind === "priority" && Number(sourceData.slot) === slot) return true;
+      const existing = state.priorities[slot];
+      if (existing && !window.confirm(`${slot + 1}번 중요한 일을 바꿀까요?`)) return false;
+      state.priorities[slot] = { id: id(), text, done: false, color: colors[slot] };
+      removeSource(sourceData, { keepPrioritySlot: slot });
+      save();
+      render();
+      return true;
+    }
+
+    function removePriority(slot) {
+      const item = state.priorities[slot];
+      if (!item || !confirmDelete(item.text)) return;
+      state.priorities[slot] = null;
+      save();
+      render();
+    }
+
+    function togglePriority(slot) {
+      const item = state.priorities[slot];
+      if (!item) return;
+      item.done = !item.done;
+      save();
+      render();
+    }
+
+    function addBoxTask(hour, text, color) {
+      state.boxes[hour] ||= [];
+      state.boxes[hour].push({ id: id(), text, color });
+      save();
+      render();
+    }
+
+    function moveBoxTask(sourceHour, taskId, targetHour) {
+      if (!sourceHour || !taskId || !targetHour || sourceHour === targetHour) return;
+      const task = (state.boxes[sourceHour] || []).find((x) => x.id === taskId);
+      if (!task) return;
+      state.boxes[sourceHour] = (state.boxes[sourceHour] || []).filter((x) => x.id !== taskId);
+      state.boxes[targetHour] ||= [];
+      state.boxes[targetHour].push(task);
+      save();
+      render();
+    }
+
+    function removeBoxTask(hour, taskId) {
+      const task = (state.boxes[hour] || []).find((x) => x.id === taskId);
+      if (!task || !confirmDelete(task.text)) return;
+      state.boxes[hour] = (state.boxes[hour] || []).filter((x) => x.id !== taskId);
+      save();
+      render();
+    }
+
+    function dragData(kind, text, color, sourceId, extra = {}) {
+      return JSON.stringify({ kind, text, color, id: sourceId, ...extra });
+    }
+
+    function readDrag(event) {
+      try {
+        return JSON.parse(event.dataTransfer.getData("application/json"));
+      } catch {
+        return null;
+      }
+    }
+
+    function allowDrop(event) {
+      event.preventDefault();
+      event.currentTarget.classList.add("over");
+    }
+
+    function leaveDrop(event) {
+      event.currentTarget.classList.remove("over");
+    }
+
+    function renderList(el, listName, colorClass) {
+      el.innerHTML = "";
+      const list = state[listName];
+      if (!list.length) {
+        const note = document.createElement("div");
+        note.className = "empty-note";
+        note.textContent = listName === "brain" ? "일단 전부 쏟아내세요." : "급하지 않은 일을 넣어두세요.";
+        el.appendChild(note);
+        return;
+      }
+
+      list.forEach((item) => {
+        const row = document.createElement("div");
+        row.className = "item";
+        row.draggable = true;
+        row.addEventListener("dragstart", (event) => {
+          event.dataTransfer.setData("application/json", dragData(listName, item.text, colorClass, item.id));
+        });
+
+        const text = document.createElement("div");
+        text.className = "text";
+        text.textContent = item.text;
+
+        const del = document.createElement("button");
+        del.className = "delete-btn";
+        del.type = "button";
+        del.textContent = "×";
+        del.title = "삭제";
+        del.addEventListener("click", () => removeFromList(listName, item.id));
+
+        row.append(text, del);
+        el.appendChild(row);
+      });
+    }
+
+    function renderPriorities() {
+      const grid = $("priorityGrid");
+      grid.innerHTML = "";
+      state.priorities.forEach((item, slot) => {
+        const card = document.createElement("div");
+        card.className = item ? "priority" + (item.done ? " done" : "") : "priority empty";
+        card.dataset.slot = String(slot);
+        card.addEventListener("dragover", allowDrop);
+        card.addEventListener("dragleave", leaveDrop);
+        card.addEventListener("drop", (event) => {
+          event.preventDefault();
+          card.classList.remove("over");
+          const data = readDrag(event);
+          if (!data || !data.text) return;
+          setPriority(slot, data.text, data);
+        });
+
+        if (!item) {
+          card.textContent = `${slot + 1}번 칸에 드래그`;
+          grid.appendChild(card);
+          return;
+        }
+
+        card.draggable = true;
+        card.addEventListener("dragstart", (event) => {
+          event.dataTransfer.setData("application/json", dragData("priority", item.text, colors[slot], item.id, { slot }));
+        });
+
+        const check = document.createElement("input");
+        check.type = "checkbox";
+        check.checked = item.done;
+        check.title = "완료";
+        check.addEventListener("change", () => togglePriority(slot));
+
+        const text = document.createElement("div");
+        text.className = "text";
+        text.textContent = item.text;
+
+        const del = document.createElement("button");
+        del.className = "delete-btn";
+        del.type = "button";
+        del.textContent = "×";
+        del.title = "삭제";
+        del.addEventListener("click", () => removePriority(slot));
+
+        card.append(check, text, del);
+        grid.appendChild(card);
+      });
+    }
+
+    function renderSchedule() {
+      const schedule = $("schedule");
+      schedule.innerHTML = "";
+
+      hours.forEach((hour) => {
+        const key = String(hour).padStart(2, "0");
+        const row = document.createElement("div");
+        row.className = "hour";
+
+        const label = document.createElement("div");
+        label.className = "hour-label";
+        label.textContent = `${key}:00`;
+
+        const zone = document.createElement("div");
+        zone.className = "dropzone";
+        zone.addEventListener("dragover", allowDrop);
+        zone.addEventListener("dragleave", leaveDrop);
+        zone.addEventListener("drop", (event) => {
+          event.preventDefault();
+          zone.classList.remove("over");
+          const data = readDrag(event);
+          if (!data || !data.text) return;
+          if (data.kind === "brain") return;
+          if (data.kind === "box") {
+            moveBoxTask(data.hour, data.id, key);
+            return;
+          }
+          const color = data.kind === "priority" ? data.color : "spare";
+          addBoxTask(key, data.text, color);
+        });
+
+        const tasks = state.boxes[key] || [];
+        if (!tasks.length) {
+          const empty = document.createElement("div");
+          empty.className = "empty-note";
+          empty.textContent = "비어 있음";
+          zone.appendChild(empty);
+        } else {
+          tasks.forEach((task) => {
+            const taskEl = document.createElement("div");
+            taskEl.className = `box-task ${task.color || "spare"}`;
+            taskEl.draggable = true;
+            taskEl.addEventListener("dragstart", (event) => {
+              event.dataTransfer.setData("application/json", dragData("box", task.text, task.color || "spare", task.id, { hour: key }));
+            });
+
+            const text = document.createElement("div");
+            text.className = "text";
+            text.textContent = task.text;
+
+            const del = document.createElement("button");
+            del.className = "delete-btn";
+            del.type = "button";
+            del.textContent = "×";
+            del.title = "삭제";
+            del.addEventListener("click", () => removeBoxTask(key, task.id));
+
+            taskEl.append(text, del);
+            zone.appendChild(taskEl);
+          });
+        }
+
+        row.append(label, zone);
+        schedule.appendChild(row);
+      });
+      renderNowLine();
+    }
+
+    function renderNowLine() {
+      const schedule = $("schedule");
+      const old = document.getElementById("nowLine");
+      if (old) old.remove();
+
+      const now = new Date();
+      const start = new Date(`${currentDate}T09:00:00`);
+      const end = new Date(start);
+      end.setDate(end.getDate() + 1);
+      end.setHours(3, 0, 0, 0);
+      if (now < start || now > end) return;
+
+      const line = document.createElement("div");
+      line.id = "nowLine";
+      line.className = "now-line";
+      const total = end - start;
+      const elapsed = now - start;
+      line.style.top = `${Math.max(0, Math.min(100, (elapsed / total) * 100))}%`;
+      schedule.appendChild(line);
+    }
+
+    function renderStats() {
+      const done = state.priorities.filter((item) => item && item.done).length;
+      const planned = Object.values(state.boxes).reduce((sum, tasks) => sum + (tasks && tasks.length ? 1 : 0), 0);
+      $("brainCount").textContent = state.brain.length;
+      $("priorityDone").textContent = `${done}/3`;
+      $("plannedHours").textContent = `${planned}h`;
+      $("dayTitle").textContent = `${currentDate} 일정`;
+    }
+
+    function render() {
+      renderList($("brainList"), "brain", "spare");
+      renderList($("spareList"), "spare", "spare");
+      renderPriorities();
+      renderSchedule();
+      renderStats();
+    }
+
+    $("brainForm").addEventListener("submit", (event) => {
+      event.preventDefault();
+      addItem("brain", $("brainInput").value);
+      $("brainInput").value = "";
+      $("brainInput").focus();
+    });
+
+    $("spareForm").addEventListener("submit", (event) => {
+      event.preventDefault();
+      addItem("spare", $("spareInput").value);
+      $("spareInput").value = "";
+      $("spareInput").focus();
+    });
+
+    $("brainList").addEventListener("dragover", allowDrop);
+    $("brainList").addEventListener("dragleave", leaveDrop);
+    $("brainList").addEventListener("drop", (event) => {
+      event.preventDefault();
+      $("brainList").classList.remove("over");
+      const data = readDrag(event);
+      if (!data || !data.text || data.kind === "box") return;
+      moveToBrain(data);
+    });
+
+    $("spareList").addEventListener("dragover", allowDrop);
+    $("spareList").addEventListener("dragleave", leaveDrop);
+    $("spareList").addEventListener("drop", (event) => {
+      event.preventDefault();
+      $("spareList").classList.remove("over");
+      const data = readDrag(event);
+      if (!data || !data.text || data.kind === "box") return;
+      moveToSpare(data);
+    });
+
+    $("dateInput").addEventListener("change", (event) => load(event.target.value));
+    $("prevDay").addEventListener("click", () => load(addDays(currentDate, -1)));
+    $("nextDay").addEventListener("click", () => load(addDays(currentDate, 1)));
+
+    load(currentDate);
+    setInterval(renderNowLine, 60000);
+  </script>
 </body>
 </html>
